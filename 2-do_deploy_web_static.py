@@ -3,23 +3,19 @@
 
 from fabric import api
 from fabric.contrib import files
-from fabric.exceptions import CommandExecutionError
 import os
 
 
 api.env.hosts = ['34.227.94.33', '54.90.37.150']
 api.env.user = 'ubuntu'
-api.env.key_filename = '~/.ssh/id_rsa'
+api.env.key_filename = '~/.ssh/alx_server'
 
 
 def do_deploy(archive_path):
-    """Transfer `archive_path` to web servers.
-    
+    """Function to transfer `archive_path` to web servers.
     Args:
-        archive_path (str): Path of the .tgz file to transfer.
-        
-    Returns:
-        bool: True on success, False otherwise.
+        archive_path (str): path of the .tgz file to transfer
+    Returns: True on success, False otherwise.
     """
     if not os.path.isfile(archive_path):
         return False
@@ -38,10 +34,8 @@ def do_deploy(archive_path):
             api.run('rm -rf {}/web_static'.format(outpath))
             api.run('rm -rf /data/web_static/current')
             api.run('ln -sf {} /data/web_static/current'.format(outpath))
-            api.puts('New version deployed!')
-        except CommandExecutionError as e:
-            api.puts('Deployment failed: {}'.format(str(e)))
+            print('New version deployed!')
+        except:
             return False
         else:
             return True
-
