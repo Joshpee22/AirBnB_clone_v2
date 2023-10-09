@@ -1,11 +1,14 @@
 #!/usr/bin/python3
-'''Creates and distributes an archive to your web servers using deploy()'''
+'''fcreates and distributes an archive to your web servers, using deploy():
+'''
 
 import os
 from datetime import datetime
-from fabric.api import local, put, run, runs_once
+from fabric.api import env, local, put, run, runs_once
+
 
 env.hosts = ['34.227.94.33', '54.90.37.150']
+
 
 @runs_once
 def do_pack():
@@ -24,20 +27,24 @@ def do_pack():
     try:
         print("Packing web_static to {}".format(output))
         local("tar -cvzf {} web_static".format(output))
-        archive_size = os.stat(output).st_size
-        print("web_static packed: {} -> {} Bytes".format(output, archive_size))
-    except Exception as e:
-        print("Error packing web_static: {}".format(e))
+        archize_size = os.stat(output).st_size
+        print("web_static packed: {} -> {} Bytes".format(output, archize_size))
+    except Exception:
         output = None
     return output
 
+
 def do_deploy(archive_path):
-    """Deploys the static files to the host servers."""
+    """Deploys the static files to the host servers.
+    Args:
+        archive_path (str): The path to the archived static files.
+    """
     if not os.path.exists(archive_path):
         return False
     file_name = os.path.basename(archive_path)
     folder_name = file_name.replace(".tgz", "")
     folder_path = "/data/web_static/releases/{}/".format(folder_name)
+    success = False
     try:
         put(archive_path, "/tmp/{}".format(file_name))
         run("mkdir -p {}".format(folder_path))
@@ -48,16 +55,14 @@ def do_deploy(archive_path):
         run("rm -rf /data/web_static/current")
         run("ln -s {} /data/web_static/current".format(folder_path))
         print('New version is now LIVE!')
-        return True
-    except Exception as e:
-        print("Deployment failed: {}".format(e))
-        return False
+        success = True
+    except Exception:
+        success = False
+    return success
+
 
 def deploy():
-    """Archives and deploys the static files to the host servers."""
+    """Archives and deploys the static files to the host servers.
+    """
     archive_path = do_pack()
     return do_deploy(archive_path) if archive_path else False
-
-if __name__ == "__main__":
-    deploy()
-
